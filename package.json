@@ -1,0 +1,28 @@
+{
+  "name": "oacorde",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commitizen": "^4.3.1",
+    "commitlint": "^20.2.0",
+    "husky": "^9.1.7"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "commit": "cz"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
+    "cz-conventional-changelog": "^3.3.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
