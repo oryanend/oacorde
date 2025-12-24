@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+if git diff --cached --name-only | grep "^backend/.*\.java$"; then
+
+  echo "Houveram mudanças em arquivos Java. Rodando Spotless..."
+
+  cd backend || exit
+
+  ./mvnw spotless:apply || exit 1
+
+  cd ..
+
+  git add backend/
+fi
