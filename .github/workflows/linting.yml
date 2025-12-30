@@ -1,4 +1,4 @@
-name: Litining Checks
+name: Linting Checks
 
 on: pull_request
 
@@ -6,6 +6,9 @@ jobs:
   spotless:
     name: Spotless
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
 
     steps:
       - uses: actions/checkout@v4
