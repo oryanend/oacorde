@@ -1,14 +1,18 @@
 #!/usr/bin/env sh
 
-if git diff --cached --name-only | grep "^backend/.*\.java$"; then
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "^backend/.*\.java$" || true)
 
-  echo "Houveram mudanças em arquivos Java. Rodando Spotless..."
+# Se não houver arquivos Java staged, sai com sucesso
+[ -z "$STAGED_FILES" ] && exit 0
 
-  cd backend || exit
+echo "Houveram mudanças em arquivos Java. Rodando Spotless..."
 
-  ./mvnw spotless:apply || exit 1
+cd backend || exit 1
 
-  cd ..
+./mvnw spotless:apply || exit 1
 
-  git add backend/
-fi
+cd .. || exit 1
+
+# Re-adiciona SOMENTE os arquivos que estavam staged
+echo "$STAGED_FILES" | xargs git add
+exit 0
