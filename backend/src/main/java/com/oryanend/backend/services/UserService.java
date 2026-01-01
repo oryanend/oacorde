@@ -9,8 +9,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
   @Autowired private UserRepository userRepository;
+  @Autowired private PasswordService passwordService;
 
   public List<User> findAllUsers() {
     return userRepository.findAll();
+  }
+
+  public User createUser(User user) {
+    user.setPassword(passwordService.encodePassword(user.getPassword()));
+    return userRepository.save(user);
   }
 }
