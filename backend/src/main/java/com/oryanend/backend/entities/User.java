@@ -8,9 +8,10 @@ import org.hibernate.annotations.UuidGenerator;
 @Entity
 @Table(name = "tb_user")
 public class User {
+
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
   @UuidGenerator
+  @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
   private String username;

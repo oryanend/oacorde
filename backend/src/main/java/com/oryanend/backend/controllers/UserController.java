@@ -30,6 +30,6 @@ public class UserController {
             .path("/{id}")
             .buildAndExpand(createdUser.getId())
             .toUri();
-    return ResponseEntity.ok().body(createdUser);
+    return ResponseEntity.created(uri).body(createdUser);
   }
 }
