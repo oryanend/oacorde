@@ -5,14 +5,25 @@ STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "^backend/
 # Se não houver arquivos Java staged, sai com sucesso
 [ -z "$STAGED_FILES" ] && exit 0
 
-echo "Houveram mudanças em arquivos Java. Rodando Spotless..."
+echo "Arquivos Java detectados. Verificando Spotless..."
 
 cd backend || exit 1
 
+# Verifica o status do Spotless
+./mvnw spotless:check
+CHECK_STATUS=$?
+
+if [ $CHECK_STATUS -eq 0 ]; then
+  echo "Spotless OK. Nenhuma correção necessária."
+  exit 0
+fi
+
+echo "Spotless encontrou problemas. Aplicando correções..."
 ./mvnw spotless:apply || exit 1
 
 cd .. || exit 1
 
-# Re-adiciona SOMENTE os arquivos que estavam staged
 echo "$STAGED_FILES" | xargs git add
+
+echo "Spotless aplicado e arquivos atualizados."
 exit 0
