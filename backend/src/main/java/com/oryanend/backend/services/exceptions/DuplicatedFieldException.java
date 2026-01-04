@@ -1,7 +1,7 @@
 package com.oryanend.backend.services.exceptions;
 
-public class DuplicatedField extends RuntimeException {
-    public DuplicatedField(String message) {
-        super(message);
-    }
+public class DuplicatedFieldException extends RuntimeException {
+  public DuplicatedFieldException(String message) {
+    super(message);
+  }
 }
