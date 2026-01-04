@@ -1,5 +1,6 @@
 package com.oryanend.backend.controllers;
 
+import static com.oryanend.backend.factories.UserDTOFactory.createUserDTO;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -26,11 +27,11 @@ import tools.jackson.databind.ObjectMapper;
 public class UserControllerTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
-
   @Autowired private PasswordService passwordService;
 
   private static final String baseUrl = "/users";
   private String userName, userEmail, userPassword;
+  private String nonExistingUsername;
   private User userTest;
   private UserDTO userTestDTO;
 
@@ -42,11 +43,13 @@ public class UserControllerTest {
 
     userTest = new User(null, userName, userEmail, passwordService.encodePassword(userPassword));
     userTestDTO = new UserDTO(userTest);
+
+    nonExistingUsername = "nonexistinguser";
   }
 
   @Test
-  @DisplayName("GET /users should return list of users")
-  public void getUsers() throws Exception {
+  @DisplayName("GET `/users` should return list of users")
+  void getUsers() throws Exception {
     ResultActions result = mockMvc.perform(get(baseUrl).accept(MediaType.APPLICATION_JSON));
 
     result
@@ -58,7 +61,43 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("POST /users should create a user and return 201")
+  @DisplayName("GET `/users/{username}` should return user by username")
+  void getUserByUsername() throws Exception {
+    String jsonBody = objectMapper.writeValueAsString(userTestDTO);
+
+    mockMvc.perform(
+        post(baseUrl)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonBody)
+            .accept(MediaType.APPLICATION_JSON));
+    ResultActions result =
+        mockMvc.perform(get(baseUrl + "/" + userName).accept(MediaType.APPLICATION_JSON));
+
+    result
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.username").value(userName))
+        .andExpect(jsonPath("$.email").value(userEmail))
+        .andExpect(jsonPath("$.password").isNotEmpty());
+  }
+
+  @Test
+  @DisplayName("GET `/users/{username}` should return 404 for non-existing user")
+  void getUserByUsernameNotFound() throws Exception {
+    ResultActions result =
+        mockMvc.perform(
+            get(baseUrl + "/" + nonExistingUsername).accept(MediaType.APPLICATION_JSON));
+
+    result
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(
+            jsonPath("$.error")
+                .value("Doesn't exist any user with this username, try another one."))
+        .andExpect(jsonPath("$.path").value(baseUrl + "/" + nonExistingUsername));
+  }
+
+  @Test
+  @DisplayName("POST `/users` should create a user and return 201")
   void postUser() throws Exception {
     String jsonBody = objectMapper.writeValueAsString(userTestDTO);
 
@@ -77,5 +116,64 @@ public class UserControllerTest {
 
     // Verify password encoded matches with the original password
     assert passwordService.matches(userPassword, userTest.getPassword());
+  }
+
+  @Test
+  @DisplayName("POST `/users` should return 400 for duplicate `username`")
+  void postUserDuplicateUsername() throws Exception {
+    // First attempt to create user
+    String jsonBody =
+        objectMapper.writeValueAsString(createUserDTO("duplicatedUsername", null, null));
+    ResultActions resultFirstPost =
+        mockMvc.perform(
+            post(baseUrl)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonBody)
+                .accept(MediaType.APPLICATION_JSON));
+    resultFirstPost.andExpect(status().isCreated());
+
+    // Second attempt to create user with same username
+    jsonBody = objectMapper.writeValueAsString(createUserDTO("DuplicatedUsername", null, null));
+    ResultActions resultSecondPost =
+        mockMvc.perform(
+            post(baseUrl)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonBody)
+                .accept(MediaType.APPLICATION_JSON));
+    resultSecondPost
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("This username is already taken, try other username."))
+        .andExpect(jsonPath("$.path").value(baseUrl));
+  }
+
+  @Test
+  @DisplayName("POST `/users` should return 400 for duplicate `email`")
+  void postUserDuplicateEmail() throws Exception {
+    // First attempt to create user
+    String jsonBody =
+        objectMapper.writeValueAsString(createUserDTO(null, "email-duplicated@gmail.com", null));
+    ResultActions resultFirstPost =
+        mockMvc.perform(
+            post(baseUrl)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonBody)
+                .accept(MediaType.APPLICATION_JSON));
+    resultFirstPost.andExpect(status().isCreated());
+
+    // Second attempt to create user with same username
+    jsonBody =
+        objectMapper.writeValueAsString(createUserDTO(null, "Email-Duplicated@gmail.com", null));
+    ResultActions resultSecondPost =
+        mockMvc.perform(
+            post(baseUrl)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonBody)
+                .accept(MediaType.APPLICATION_JSON));
+    resultSecondPost
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.error").value("This email is already taken, try other email."))
+        .andExpect(jsonPath("$.path").value(baseUrl));
   }
 }

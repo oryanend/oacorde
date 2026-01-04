@@ -3,6 +3,8 @@ package com.oryanend.backend.services;
 import com.oryanend.backend.dto.UserDTO;
 import com.oryanend.backend.entities.User;
 import com.oryanend.backend.repositories.UserRepository;
+import com.oryanend.backend.services.exceptions.DuplicatedFieldException;
+import com.oryanend.backend.services.exceptions.ResourceNotFoundException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,7 +21,27 @@ public class UserService {
   }
 
   @Transactional(readOnly = true)
+  public UserDTO findByUsername(String username) {
+    User user =
+        userRepository
+            .findByUsernameContainingIgnoreCase(username)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Doesn't exist any user with this username, try another one."));
+    return new UserDTO(user);
+  }
+
+  @Transactional()
   public UserDTO createUser(UserDTO user) {
+    if (userRepository.existsByUsernameIgnoreCase(user.getUsername())) {
+      throw new DuplicatedFieldException("This username is already taken, try other username.");
+    }
+
+    if (userRepository.existsByEmailIgnoreCase(user.getEmail())) {
+      throw new DuplicatedFieldException("This email is already taken, try other email.");
+    }
+
     user.setPassword(passwordService.encodePassword(user.getPassword()));
     User entity = new User();
     copyEntityToDTO(user, entity);
