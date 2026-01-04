@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.oryanend.backend.dto.UserDTO;
 import com.oryanend.backend.entities.User;
 import com.oryanend.backend.services.PasswordService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ public class UserControllerTest {
   private static final String baseUrl = "/users";
   private String userName, userEmail, userPassword;
   private User userTest;
+  private UserDTO userTestDTO;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -39,6 +41,7 @@ public class UserControllerTest {
     userPassword = "testpassword";
 
     userTest = new User(null, userName, userEmail, passwordService.encodePassword(userPassword));
+    userTestDTO = new UserDTO(userTest);
   }
 
   @Test
@@ -49,7 +52,6 @@ public class UserControllerTest {
     result
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$[0].id").isNotEmpty())
         .andExpect(jsonPath("$[0].username").isNotEmpty())
         .andExpect(jsonPath("$[0].email").isNotEmpty())
         .andExpect(jsonPath("$[0].password").isNotEmpty());
@@ -58,7 +60,7 @@ public class UserControllerTest {
   @Test
   @DisplayName("POST /users should create a user and return 201")
   void postUser() throws Exception {
-    String jsonBody = objectMapper.writeValueAsString(userTest);
+    String jsonBody = objectMapper.writeValueAsString(userTestDTO);
 
     ResultActions result =
         mockMvc.perform(
@@ -69,7 +71,6 @@ public class UserControllerTest {
 
     result
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").isNotEmpty())
         .andExpect(jsonPath("$.username").value(userName))
         .andExpect(jsonPath("$.email").value(userEmail))
         .andExpect(jsonPath("$.password").isNotEmpty());

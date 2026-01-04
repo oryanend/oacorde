@@ -1,6 +1,6 @@
 package com.oryanend.backend.controllers;
 
-import com.oryanend.backend.entities.User;
+import com.oryanend.backend.dto.UserDTO;
 import com.oryanend.backend.services.UserService;
 import java.net.URI;
 import java.util.List;
@@ -17,18 +17,18 @@ public class UserController {
   @Autowired private UserService userService;
 
   @GetMapping
-  public ResponseEntity<List<User>> findAll() {
-    List<User> users = userService.findAllUsers();
+  public ResponseEntity<List<UserDTO>> findAll() {
+    List<UserDTO> users = userService.findAllUsers();
     return ResponseEntity.ok().body(users);
   }
 
   @PostMapping
-  public ResponseEntity<User> createUser(@RequestBody User user) {
-    User createdUser = userService.createUser(user);
+  public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO user) {
+    UserDTO createdUser = userService.createUser(user);
     URI uri =
         ServletUriComponentsBuilder.fromCurrentRequest()
             .path("/{id}")
-            .buildAndExpand(createdUser.getId())
+            .buildAndExpand(createdUser.getUsername())
             .toUri();
     return ResponseEntity.created(uri).body(createdUser);
   }
