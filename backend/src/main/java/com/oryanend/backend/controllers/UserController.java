@@ -38,4 +38,11 @@ public class UserController {
             .toUri();
     return ResponseEntity.created(uri).body(createdUser);
   }
+
+  @PatchMapping(value = "/{username}")
+  public ResponseEntity<UserDTO> updateUser(
+      @PathVariable String username, @RequestBody UserDTO userDTO) {
+    UserDTO updatedUser = userService.updateUser(username, userDTO);
+    return ResponseEntity.ok().body(updatedUser);
+  }
 }

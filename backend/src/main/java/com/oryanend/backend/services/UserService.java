@@ -32,7 +32,7 @@ public class UserService {
     return new UserDTO(user);
   }
 
-  @Transactional()
+  @Transactional
   public UserDTO createUser(UserDTO user) {
     if (userRepository.existsByUsernameIgnoreCase(user.getUsername())) {
       throw new DuplicatedFieldException("This username is already taken, try other username.");
@@ -49,9 +49,37 @@ public class UserService {
     return new UserDTO(userRepository.save(entity));
   }
 
+  @Transactional
+  public UserDTO updateUser(String username, UserDTO userDTO) {
+    if (userRepository.existsByUsernameIgnoreCase(userDTO.getUsername())) {
+      throw new DuplicatedFieldException("This username is already taken, try other username.");
+    }
+
+    if (userRepository.existsByEmailIgnoreCase(userDTO.getEmail())) {
+      throw new DuplicatedFieldException("This email is already taken, try other email.");
+    }
+
+    User user =
+        userRepository
+            .findByUsernameContainingIgnoreCase(username)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Doesn't exist any user with this username, try another one."));
+    copyEntityToDTO(userDTO, user);
+
+    return new UserDTO(userRepository.save(user));
+  }
+
   private void copyEntityToDTO(UserDTO dto, User entity) {
-    entity.setUsername(dto.getUsername());
-    entity.setEmail(dto.getEmail());
-    entity.setPassword(dto.getPassword());
+    if (dto.getEmail() != null) {
+      entity.setEmail(dto.getEmail());
+    }
+    if (dto.getPassword() != null) {
+      entity.setPassword(passwordService.encodePassword(dto.getPassword()));
+    }
+    if (dto.getUsername() != null) {
+      entity.setUsername(dto.getUsername());
+    }
   }
 }

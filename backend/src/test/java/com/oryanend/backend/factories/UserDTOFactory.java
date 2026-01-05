@@ -16,4 +16,8 @@ public class UserDTOFactory {
             password != null ? password : faker.text().text());
     return new UserDTO(user);
   }
+
+  public static UserDTO createUserDTO() {
+    return createUserDTO(null, null, null);
+  }
 }
