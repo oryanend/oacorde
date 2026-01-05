@@ -403,4 +403,39 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.error").value("This email is already taken, try other email."))
         .andExpect(jsonPath("$.path").value(baseUrl + "/" + secondUserDTO.getUsername()));
   }
+
+  @Test
+  @DisplayName("DELETE `/users/{username}` should return 404 for non-existing user")
+  void deleteUserByUsernameNotFound() throws Exception {
+    ResultActions result =
+        mockMvc.perform(
+            delete(baseUrl + "/" + nonExistingUsername).accept(MediaType.APPLICATION_JSON));
+
+    result
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(
+            jsonPath("$.error")
+                .value("Doesn't exist any user with this username, try another one."))
+        .andExpect(jsonPath("$.path").value(baseUrl + "/" + nonExistingUsername));
+  }
+
+  @Test
+  @DisplayName("DELETE `/users/{username}` should delete user by username")
+  void deleteUserByUsername() throws Exception {
+    String jsonBody = objectMapper.writeValueAsString(userTestDTO);
+
+    mockMvc.perform(
+        post(baseUrl)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonBody)
+            .accept(MediaType.APPLICATION_JSON));
+    ResultActions result =
+        mockMvc.perform(delete(baseUrl + "/" + userName).accept(MediaType.APPLICATION_JSON));
+
+    result.andExpect(status().isNoContent());
+
+    assert !(userRepository.existsByUsernameIgnoreCase(userName));
+  }
+  // Needed to Tests that throw error when existsByUsernameIgnoreCase return more than one user.
 }

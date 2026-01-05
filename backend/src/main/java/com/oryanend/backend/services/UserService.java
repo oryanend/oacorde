@@ -8,6 +8,7 @@ import com.oryanend.backend.services.exceptions.ResourceNotFoundException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -69,6 +70,18 @@ public class UserService {
     copyEntityToDTO(userDTO, user);
 
     return new UserDTO(userRepository.save(user));
+  }
+
+  @Transactional(propagation = Propagation.SUPPORTS)
+  public void deleteUser(String username) {
+    User user =
+        userRepository
+            .findByUsernameContainingIgnoreCase(username)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Doesn't exist any user with this username, try another one."));
+    userRepository.delete(user);
   }
 
   private void copyEntityToDTO(UserDTO dto, User entity) {

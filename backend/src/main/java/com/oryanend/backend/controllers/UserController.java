@@ -45,4 +45,10 @@ public class UserController {
     UserDTO updatedUser = userService.updateUser(username, userDTO);
     return ResponseEntity.ok().body(updatedUser);
   }
+
+  @DeleteMapping(value = "/{username}")
+  public ResponseEntity<Void> deleteUser(@PathVariable String username) {
+    userService.deleteUser(username);
+    return ResponseEntity.noContent().build();
+  }
 }
