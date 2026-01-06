@@ -1,22 +1,37 @@
 package com.oryanend.backend.entities;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
-import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "tb_user")
 public class User {
 
   @Id
-  @UuidGenerator
   @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(nullable = false)
   private UUID id;
 
+  @Column(nullable = false, unique = true, length = 40)
   private String username;
+
+  @Column(nullable = false, unique = true, length = 254)
   private String email;
+
+  @Column(nullable = false, length = 72)
   private String password;
+
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false, name = "created_at")
+  private Instant createdAt;
+
+  @UpdateTimestamp
+  @Column(nullable = false, name = "updated_at")
+  private Instant updatedAt;
 
   public User(UUID id, String username, String email, String password) {
     this.id = id;
@@ -53,6 +68,22 @@ public class User {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(Instant updatedAt) {
+    this.updatedAt = updatedAt;
   }
 
   @Override
