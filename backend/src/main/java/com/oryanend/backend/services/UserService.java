@@ -1,12 +1,14 @@
 package com.oryanend.backend.services;
 
 import com.oryanend.backend.dto.UserDTO;
+import com.oryanend.backend.dto.UserMinDTO;
 import com.oryanend.backend.entities.User;
 import com.oryanend.backend.repositories.UserRepository;
 import com.oryanend.backend.services.exceptions.DuplicatedFieldException;
 import com.oryanend.backend.services.exceptions.ResourceNotFoundException;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,15 +19,16 @@ public class UserService {
   @Autowired private PasswordService passwordService;
 
   @Transactional(readOnly = true)
-  public List<UserDTO> findAllUsers() {
-    return userRepository.findAll().stream().map(UserDTO::new).toList();
+  public Page<UserMinDTO> findAllUsers(String name, Pageable pageable) {
+    Page<User> users = userRepository.searchByUsername(name, pageable);
+    return users.map(UserMinDTO::new);
   }
 
   @Transactional(readOnly = true)
   public UserDTO findByUsername(String username) {
     User user =
         userRepository
-            .findByUsernameContainingIgnoreCase(username)
+            .findByUsernameIgnoreCase(username)
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
@@ -62,7 +65,7 @@ public class UserService {
 
     User user =
         userRepository
-            .findByUsernameContainingIgnoreCase(username)
+            .findByUsernameIgnoreCase(username)
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
@@ -76,7 +79,7 @@ public class UserService {
   public void deleteUser(String username) {
     User user =
         userRepository
-            .findByUsernameContainingIgnoreCase(username)
+            .findByUsernameIgnoreCase(username)
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException(
@@ -93,6 +96,12 @@ public class UserService {
     }
     if (dto.getUsername() != null) {
       entity.setUsername(dto.getUsername());
+    }
+    if (dto.getCreatedAt() != null) {
+      entity.setCreatedAt(dto.getCreatedAt());
+    }
+    if (dto.getUpdatedAt() != null) {
+      entity.setUpdatedAt(dto.getUpdatedAt());
     }
   }
 }

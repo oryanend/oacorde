@@ -1,10 +1,12 @@
 package com.oryanend.backend.controllers;
 
 import com.oryanend.backend.dto.UserDTO;
+import com.oryanend.backend.dto.UserMinDTO;
 import com.oryanend.backend.services.UserService;
 import java.net.URI;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -12,14 +14,20 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Controller
 @RestController
-@RequestMapping(value = "/users")
+@RequestMapping(value = "api/v1/users")
 public class UserController {
   @Autowired private UserService userService;
 
   @GetMapping
-  public ResponseEntity<List<UserDTO>> findAll() {
-    List<UserDTO> users = userService.findAllUsers();
-    return ResponseEntity.ok().body(users);
+  public ResponseEntity<Page<UserMinDTO>> findAll(
+      @RequestParam(value = "username", defaultValue = "") String username, Pageable pageable) {
+    Page<UserMinDTO> dto = userService.findAllUsers(username, pageable);
+    return ResponseEntity.ok().body(dto);
+  }
+
+  public ResponseEntity<Page<UserMinDTO>> findAll(Pageable pageable) {
+    Page<UserMinDTO> dto = userService.findAllUsers("", pageable);
+    return ResponseEntity.ok().body(dto);
   }
 
   @GetMapping(value = "/{username}")
