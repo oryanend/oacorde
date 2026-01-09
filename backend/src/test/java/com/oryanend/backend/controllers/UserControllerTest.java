@@ -32,7 +32,7 @@ public class UserControllerTest {
   @Autowired private PasswordService passwordService;
   @Autowired private UserRepository userRepository;
 
-  private static final String baseUrl = "/users";
+  private static final String baseUrl = "/api/v1/users";
   private String userName, userEmail, userPassword;
   private String nonExistingUsername;
   private User userTest;
@@ -51,20 +51,20 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("GET `/users` should return list of users")
+  @DisplayName("GET `api/v1/users` should return list of users")
   void getUsers() throws Exception {
     ResultActions result = mockMvc.perform(get(baseUrl).accept(MediaType.APPLICATION_JSON));
 
     result
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$[0].username").isNotEmpty())
-        .andExpect(jsonPath("$[0].email").isNotEmpty())
-        .andExpect(jsonPath("$[0].password").isNotEmpty());
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content[0].username").isNotEmpty())
+        .andExpect(jsonPath("$.content[0].createdAt").isNotEmpty())
+        .andExpect(jsonPath("$.content[0].updatedAt").isNotEmpty());
   }
 
   @Test
-  @DisplayName("GET `/users/{username}` should return user by username")
+  @DisplayName("GET `api/v1/users/{username}` should return user by username")
   void getUserByUsername() throws Exception {
     String jsonBody = objectMapper.writeValueAsString(userTestDTO);
 
@@ -84,7 +84,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("GET `/users/{username}` should return 404 for non-existing user")
+  @DisplayName("GET `api/v1/users/{username}` should return 404 for non-existing user")
   void getUserByUsernameNotFound() throws Exception {
     ResultActions result =
         mockMvc.perform(
@@ -100,7 +100,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("POST `/users` should create a user and return 201")
+  @DisplayName("POST `api/v1/users` should create a user and return 201")
   void postUser() throws Exception {
     String jsonBody = objectMapper.writeValueAsString(userTestDTO);
 
@@ -122,7 +122,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("POST `/users` should return 400 for duplicate `username`")
+  @DisplayName("POST `api/v1/users` should return 400 for duplicate `username`")
   void postUserDuplicateUsername() throws Exception {
     // First attempt to create user
     String jsonBody =
@@ -151,7 +151,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("POST `/users` should return 400 for duplicate `email`")
+  @DisplayName("POST `api/v1/users` should return 400 for duplicate `email`")
   void postUserDuplicateEmail() throws Exception {
     // First attempt to create user
     String jsonBody =
@@ -181,7 +181,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("PATCH `/users/{username}` should return 404 for non-existing user")
+  @DisplayName("PATCH `api/v1/users/{username}` should return 404 for non-existing user")
   void patchUserWithUsernameNotFound() throws Exception {
     String jsonBody = objectMapper.writeValueAsString(userTestDTO);
 
@@ -202,7 +202,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("PATCH `/users/{username}` should return 200 when password is updated")
+  @DisplayName("PATCH `api/v1/users/{username}` should return 200 when password is updated")
   void patchUserWithCorrectPassword() throws Exception {
     UserDTO updatedUserDTO = createUserDTO();
 
@@ -234,16 +234,14 @@ public class UserControllerTest {
         .andExpect(jsonPath("$.password").isNotEmpty());
 
     User updatedUser =
-        userRepository
-            .findByUsernameContainingIgnoreCase(updatedUserDTO.getUsername())
-            .orElseThrow();
+        userRepository.findByUsernameIgnoreCase(updatedUserDTO.getUsername()).orElseThrow();
 
     // Verify password encoded matches with the original password
     assert passwordService.matches(updateFields.get("password"), updatedUser.getPassword());
   }
 
   @Test
-  @DisplayName("PATCH `/users/{username}` should return 200 when email is updated")
+  @DisplayName("PATCH `api/v1/users/{username}` should return 200 when email is updated")
   void patchUserWithCorrectEmail() throws Exception {
     UserDTO updatedUserDTO = createUserDTO();
 
@@ -276,7 +274,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("PATCH `/users/{username}` should return 200 when username is updated")
+  @DisplayName("PATCH `api/v1/users/{username}` should return 200 when username is updated")
   void patchUserWithCorrectUsername() throws Exception {
     UserDTO updatedUserDTO = createUserDTO();
 
@@ -309,7 +307,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("PATCH `/users/{username}` should return 400 for duplicate `username`")
+  @DisplayName("PATCH `api/v1/users/{username}` should return 400 for duplicate `username`")
   void patchUserDuplicateUsername() throws Exception {
     // First user creation
     UserDTO firstUserDTO = createUserDTO("firstUser", null, null);
@@ -357,7 +355,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("PATCH `/users/{username}` should return 400 for duplicate `username`")
+  @DisplayName("PATCH `api/v1/users/{username}` should return 400 for duplicate `username`")
   void patchUserDuplicateEmail() throws Exception {
     // First user creation
     UserDTO firstUserDTO = createUserDTO(null, "first@email.com", null);
@@ -405,7 +403,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("DELETE `/users/{username}` should return 404 for non-existing user")
+  @DisplayName("DELETE `api/v1/users/{username}` should return 404 for non-existing user")
   void deleteUserByUsernameNotFound() throws Exception {
     ResultActions result =
         mockMvc.perform(
@@ -421,7 +419,7 @@ public class UserControllerTest {
   }
 
   @Test
-  @DisplayName("DELETE `/users/{username}` should delete user by username")
+  @DisplayName("DELETE `api/v1/users/{username}` should delete user by username")
   void deleteUserByUsername() throws Exception {
     String jsonBody = objectMapper.writeValueAsString(userTestDTO);
 

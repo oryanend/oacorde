@@ -25,8 +25,16 @@ public class UserDTO {
     this.username = entity.getUsername();
     this.email = entity.getEmail();
     this.password = entity.getPassword();
-    this.createdAt = entity.getCreatedAt();
-    this.updatedAt = entity.getUpdatedAt();
+    if (entity.getCreatedAt() != null) {
+      this.createdAt = entity.getCreatedAt();
+    } else {
+      this.createdAt = Instant.now();
+    }
+    if (entity.getUpdatedAt() != null) {
+      this.updatedAt = entity.getUpdatedAt();
+    } else {
+      this.updatedAt = Instant.now();
+    }
   }
 
   public UserDTO() {}
